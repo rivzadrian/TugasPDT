@@ -174,9 +174,9 @@ predict.nb <- predict(fit.nb, test_data[,1:16])
 
 confusionMatrix(predict.nb, test_data$class)
 
-
+head(bank)
 #Drop kolom yang tidak signifikan dan membagi kembali data tes dan training
-col_to_drop <- c("Ã¯..age","age","month","day","marital","job")
+col_to_drop <- c("ï..age","age","month","day","marital","job")
 bank_drop <- bank[,!(names(bank) %in% col_to_drop)]
 
 #Misah data train dan test
