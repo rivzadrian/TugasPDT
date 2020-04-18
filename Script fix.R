@@ -11,6 +11,7 @@ library(rpart)
 library(randomForest)
 library(caret)
 library(reshape2)
+library(rpart.plot)
 
 bank <- read.csv("Bank Marketing.csv")
 
@@ -92,20 +93,46 @@ test_data <- bank[-train_index,]
 x = train_data[,-17]
 y = train_data$y
 
+#Evaluation
+evaluation <- function(data,accuracy){
+  precision <- precision(data)
+  recall <- recall(data)
+  f <- F_meas(data)
+  
+  cat(paste("Precision:\t", format(precision, digits=6), "\n",sep=" "))
+  cat(paste("Recall:\t\t", format(recall, digits=6), "\n",sep=" "))
+  cat(paste("F-measure:\t", format(f, digits=6), "\n",sep=" "))
+}
 
+#Decision tree Gini
 
-#Decision tree entropy
-library(rpart)
-library(rpart.plot)
-library(caret)
 dtreemodel_rpart_gini <- rpart(y~., train_data, parms = list(split = "gini"))
 predict_dtreerpart_gini <- predict(dtreemodel_rpart_gini, test_data[,1:16], type="class")
 confusionMatrix(predict_dtreerpart_gini, test_data$y)
-printcp(dtreemodel_rpart_gini)
-plotcp(dtreemodel_rpart_gini)
-rpart.plot(dtreemodel_rpart_gini, main = "gini Index")
+rpart.plot(dtreemodel_rpart_gini, main = "gini Index")#Menampilkan tree
+printcp(dtreemodel_rpart_gini) # mengetahui CP dari tree
+plotcp(dtreemodel_rpart_gini)# Menampilkan plot XP dan X-Val realtive error
+library(ROCR)
+resultdt <- table(predict_dtreerpart_gini, test_data$y)
+cmdt <- confusionMatrix(predict_dtreerpart_gini, test_data$y)
+evaluation(resultdt, accuracy = cmdt)#Menampilakn precision recall dan f-measure
 
-#Decision tree gini
+#Prune tree dengan indikator CP GINI
+ptree <- prune(dtreemodel_rpart_gini,cp = dtreemodel_rpart_gini$cptable[which.min(dtreemodel_rpart_gini$cptable[,"xerror"]),"CP"])
+rpart.plot(ptree, uniform=TRUE, main="Pruned Classification Gini Tree")
+printcp(ptree)
+plotcp(ptree)
+recall()
+predict_dtreerpart <- predict(ptree, test_data[,1:16], type="class")
+confusionMatrix(predict_dtreerpart, test_data$y)
+
+
+plot(perf, avg= "threshold", colorize=T, lwd= 3,
+     main= "... Precision/Recall graphs ...")
+plot(perf, lty=3, col="grey78", add=T)
+
+
+#Decision tree entrophy
 library(rpart)
 library(rpart.plot)
 library(caret)
@@ -116,9 +143,9 @@ printcp(dtreemodel_rpart_entro)
 plotcp(dtreemodel_rpart_entro)
 rpart.plot(dtreemodel_rpart_entro, main = "Entrophy")
 
-#Prune tree dengan indikator CP
-ptree <- prune(dtreemodel_rpart,cp = dtreemodel_rpart$cptable[which.min(dtreemodel_rpart$cptable[,"xerror"]),"CP"])
-rpart.plot(ptree, uniform=TRUE, main="Pruned Classification Tree")
+#Prune tree dengan indikator CP Entrophy
+ptree <- prune(dtreemodel_rpart_entro,cp = dtreemodel_rpart_entro$cptable[which.min(dtreemodel_rpart_entro$cptable[,"xerror"]),"CP"])
+rpart.plot(ptree, uniform=TRUE, main="Pruned Classification Entrophy Tree")
 printcp(ptree)
 plotcp(ptree)
 predict_dtreerpart <- predict(ptree, test_data[,1:16], type="class")
