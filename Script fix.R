@@ -121,7 +121,6 @@ ptree <- prune(dtreemodel_rpart_gini,cp = dtreemodel_rpart_gini$cptable[which.mi
 rpart.plot(ptree, uniform=TRUE, main="Pruned Classification Gini Tree")
 printcp(ptree)
 plotcp(ptree)
-recall()
 predict_dtreerpart <- predict(ptree, test_data[,1:16], type="class")
 confusionMatrix(predict_dtreerpart, test_data$y)
 
@@ -132,15 +131,12 @@ plot(perf, lty=3, col="grey78", add=T)
 
 
 #Decision tree entrophy
-library(rpart)
-library(rpart.plot)
-library(caret)
 dtreemodel_rpart_entro <- rpart(y~., train_data, parms = list(split = "information"))
 predict_dtreerpart_entro <- predict(dtreemodel_rpart_entro, test_data[,1:16], type="class")
 confusionMatrix(predict_dtreerpart_entro, test_data$y)
-printcp(dtreemodel_rpart_entro)
-plotcp(dtreemodel_rpart_entro)
-rpart.plot(dtreemodel_rpart_entro, main = "Entrophy")
+printcp(dtreemodel_rpart_entro)# mengetahui CP dari tree
+plotcp(dtreemodel_rpart_entro)# Menampilkan plot XP dan X-Val realtive error
+rpart.plot(dtreemodel_rpart_entro, main = "Entrophy")#Menampilkan tree
 resultdt <- table(predict_dtreerpart_entro, test_data$y)
 cmdt <- confusionMatrix(predict_dtreerpart_entro, test_data$y)
 evaluation(resultdt, accuracy = cmdt)#Menampilakn precision recall dan f-measure
@@ -297,9 +293,9 @@ dev.off()
 normalize <- function(x) {
   return ((x - min(x)) / (max(x) - min(x)))
 }
-
+head(bank_normal)
 bank_normal <- bank
-bank_normal$Ã¯..age <- normalize(bank_normal$Ã¯..age)
+bank_normal$ï..age <- normalize(bank_normal$ï..age)
 bank_normal$balance <- normalize(bank_normal$balance)
 bank_normal$duration <- normalize(bank_normal$duration)
 
@@ -343,7 +339,7 @@ plot(k.opt, type = "b", xlim = c(174, 178), ylim = c(0.886, 0.888))
 
 
 
-######################################## Repeated holdout buat 2 tree ########################################
+######################################## Repeated holdout tree 1 ########################################
 # Repeated Holdout tree 1
 library(rminer)
 full_accuracy = 0
@@ -367,7 +363,7 @@ cat("Tree: ",
 x <- c(1:100)
 plot(x, list_accuracy, type="o")
 
-# Repeated Holdout pruned
+########################################### Repeated Holdout tree 2#############################
 library(rminer)
 full_accuracy = 0
 list_accuracy <- list()
