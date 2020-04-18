@@ -112,7 +112,6 @@ confusionMatrix(predict_dtreerpart_gini, test_data$y)
 rpart.plot(dtreemodel_rpart_gini, main = "gini Index")#Menampilkan tree
 printcp(dtreemodel_rpart_gini) # mengetahui CP dari tree
 plotcp(dtreemodel_rpart_gini)# Menampilkan plot XP dan X-Val realtive error
-library(ROCR)
 resultdt <- table(predict_dtreerpart_gini, test_data$y)
 cmdt <- confusionMatrix(predict_dtreerpart_gini, test_data$y)
 evaluation(resultdt, accuracy = cmdt)#Menampilakn precision recall dan f-measure
@@ -142,6 +141,9 @@ confusionMatrix(predict_dtreerpart_entro, test_data$y)
 printcp(dtreemodel_rpart_entro)
 plotcp(dtreemodel_rpart_entro)
 rpart.plot(dtreemodel_rpart_entro, main = "Entrophy")
+resultdt <- table(predict_dtreerpart_entro, test_data$y)
+cmdt <- confusionMatrix(predict_dtreerpart_entro, test_data$y)
+evaluation(resultdt, accuracy = cmdt)#Menampilakn precision recall dan f-measure
 
 #Prune tree dengan indikator CP Entrophy
 ptree <- prune(dtreemodel_rpart_entro,cp = dtreemodel_rpart_entro$cptable[which.min(dtreemodel_rpart_entro$cptable[,"xerror"]),"CP"])
