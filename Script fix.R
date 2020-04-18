@@ -178,7 +178,7 @@ confusionMatrix(predict.nb, test_data$class)
 
 
 #Drop kolom yang tidak signifikan dan membagi kembali data tes dan training
-col_to_drop <- c("ï..age","age","month","day","marital","job")
+col_to_drop <- c("Ã¯..age","age","month","day","marital","job")
 bank_drop <- bank[,!(names(bank) %in% col_to_drop)]
 
 #Misah data train dan test
@@ -297,7 +297,7 @@ normalize <- function(x) {
 }
 
 bank_normal <- bank
-bank_normal$ï..age <- normalize(bank_normal$ï..age)
+bank_normal$Ã¯..age <- normalize(bank_normal$Ã¯..age)
 bank_normal$balance <- normalize(bank_normal$balance)
 bank_normal$duration <- normalize(bank_normal$duration)
 
@@ -473,3 +473,27 @@ cat("Tree: ",
 x <- c(1:10)
 plot(x, list_accuracy_cv, type="o")
 
+######################################## Repeated holdout buat KNN ########################################
+
+# Repeated Holdout naive bayes
+library(rminer)
+full_accuracy = 0
+list_accuracy <- list()
+
+for(i in 1:100) {
+  H = holdout(bank$y, ratio = 2/3, mode="random", seed = NULL)
+  knnmodel <- knn3(y~., data=bank_drop[H$tr,])
+  knnpredict <- predict(knnmodel, bank_drop[H$ts,1:12], type="class")
+  result<- confusionMatrix(knnpredict, bank_drop[H$ts,]$y)
+  accuracy <- result$overall['Accuracy']
+  cat("batch: ",i,
+      "accuracy: ",accuracy,"\n")
+  full_accuracy = full_accuracy + accuracy
+  list_accuracy[[i]] <- accuracy
+}
+
+### Plot
+cat("Tree: ",
+    "Accuracy: ", full_accuracy/100, "\n")
+x <- c(1:100)
+plot(x, list_accuracy, type="o")
