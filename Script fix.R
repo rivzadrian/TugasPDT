@@ -20,9 +20,9 @@ library(e1071)
 bank <- read.csv("Bank Marketing.csv")
 bank <- data.frame(Bank.Marketing)
 View (bank)
-
+head(bank)
 #Deklarasi Atribut 
-bank$Ã¯..age <- as.numeric(bank$Ã¯..age)
+bank$ï..age <- as.numeric(bank$ï..age)
 bank$balance <- as.numeric(bank$balance)
 bank$day <- as.numeric(bank$day)
 bank$duration <- as.numeric(bank$duration)
@@ -167,7 +167,7 @@ resultdt <- table(predict_dtreerpart_gini, test_data$y)
 cmdt <- confusionMatrix(predict_dtreerpart_gini, test_data$y)
 evaluation(resultdt, accuracy = cmdt)#Menampilakn precision recall dan f-measure
 
-########################################## Prune tree dengan indikator CP GINI#######################
+########################################## Prune tree dengan indikator CP Gini#######################
 ptree <- prune(dtreemodel_rpart_gini,cp = dtreemodel_rpart_gini$cptable[which.min(dtreemodel_rpart_gini$cptable[,"xerror"]),"CP"])
 rpart.plot(ptree, uniform=TRUE, main="Pruned Classification Gini Tree")
 printcp(ptree)
