@@ -297,8 +297,8 @@ bank$poutcome <- ifelse(bank$poutcome == "succes",1,0)
 #Membagi data train dan tes setelah dijadikan numerik
 set.seed(1234)
 
-sample_size <- floor(0.7*nrow(bank_drop))
-train_index <- sample(seq_len(nrow(bank_drop)), size=sample_size)
+sample_size <- floor(0.7*nrow(bank))
+train_index <- sample(seq_len(nrow(bank)), size=sample_size)
 train_data <- bank[train_index,]
 test_data <- bank[-train_index,]
 

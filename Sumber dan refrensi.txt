@@ -10,3 +10,5 @@ https://www.edureka.co/blog/knn-algorithm-in-r/
 https://cran.r-project.org/web/packages/rpart/vignettes/longintro.pdf
 
 http://math.furman.edu/~dcs/courses/math47/R/library/e1071/html/naiveBayes.html
+
+https://discuss.analyticsvidhya.com/t/how-to-choose-the-value-of-k-in-knn-algorithm/2606
