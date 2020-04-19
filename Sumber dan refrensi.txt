@@ -1,0 +1,12 @@
+sumber2 
+https://datasharkie.com/how-to-normalize-data-in-r/
+
+https://dzone.com/articles/decision-trees-and-pruning-in-r
+
+https://www.edureka.co/blog/naive-bayes-in-r/
+
+https://www.edureka.co/blog/knn-algorithm-in-r/
+
+https://cran.r-project.org/web/packages/rpart/vignettes/longintro.pdf
+
+http://math.furman.edu/~dcs/courses/math47/R/library/e1071/html/naiveBayes.html
