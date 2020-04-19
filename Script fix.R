@@ -600,7 +600,7 @@ for(i in 1:10) {
   testIndex <- which(folds == i, arr.ind = TRUE)
   testData <- bank[testIndex, ]
   trainData <- bank[-testIndex, ]
-  tree <- rpart(y~., data = trainData)
+  tree <- rpart(y~., data = trainData, )
   ptree <- prune(tree,cp = tree$cptable[which.min(tree$cptable[,"xerror"]),"CP"])
   treepredict <- predict(ptree, testData[,1:16], type="class")
   result <- confusionMatrix(treepredict, testData$y)
@@ -751,7 +751,7 @@ for(i in 1:10) {
 }
 
 ### Plot
-cat("Tree: ",
+cat("NB No laplace: ",
     "Accuracy: ", full_accuracy_cv/10, "Precision: ", full_precision_cv/10, 
     "Recall: ", full_recall_cv/10,"F-Measure: ", full_fval_cv/10,"\n")
 x <- c(1:10)
@@ -796,13 +796,13 @@ for(i in 1:10) {
 }
 
 ### Plot
-cat("Tree: ",
+cat("NB with Laplace: ",
     "Accuracy: ", full_accuracy_cv/10, "Precision: ", full_precision_cv/10, 
     "Recall: ", full_recall_cv/10,"F-Measure: ", full_fval_cv/10,"\n")
 x <- c(1:10)
 plot(x, list_accuracy_cv, type="o")
 
-########################################## Repeated holdout buat kNN k = 177########################################
+########################################## Repeated holdout buat kNN k = 178########################################
 #ingat ubah data bank menjadi NUMERIK kembali untuk menjalankan ini
 # Repeated Holdout KNN
 library(rminer)
@@ -817,7 +817,7 @@ list_fval <- list()
 
 for(i in 1:100) {
   H = holdout(bank$y, ratio = 2/3, mode="random", seed = NULL)
-  knnmodel <- knn3(y~., data=bank[H$tr,], k = 177)
+  knnmodel <- knn3(y~., data=bank[H$tr,], k = 178)
   knnpredict <- predict(knnmodel, bank[H$ts,1:16], type="class")
   result<- confusionMatrix(knnpredict, bank[H$ts,]$y)
   accuracy <- result$overall['Accuracy']
@@ -843,7 +843,7 @@ cat("Tree: ",
 x <- c(1:100)
 plot(x, list_accuracy, type="o")
        
-########################################## Cross Validation kNN k = 177 ####################################
+########################################## Cross Validation kNN k = 178 ####################################
 #ingat ubah data bank menjadi NUMERIK kembali untuk menjalankan ini
 ### Membuat 10 fold
 folds <- cut(seq(1,nrow(bank)), breaks=10, label=FALSE)
@@ -860,7 +860,7 @@ for(i in 1:10) {
   testIndex <- which(folds == i, arr.ind = TRUE)
   testData <- bank[testIndex, ]
   trainData <- bank[-testIndex, ]
-  knnModel212 <- knn3(y~., data = trainData, k = 177)
+  knnModel212 <- knn3(y~., data = trainData, k = 178)
   knnPredict212 <- predict(knnModel212, testData[,1:16], type="class")
   result <- confusionMatrix(knnPredict212, testData$y)
   accuracy <- result$overall['Accuracy']
@@ -882,7 +882,7 @@ for(i in 1:10) {
 }
 
 ### Plot
-cat("Tree: ",
+cat("kNN 178: ",
     "Accuracy: ", full_accuracy_cv/10, "Precision: ", full_precision_cv/10, 
     "Recall: ", full_recall_cv/10,"F-Measure: ", full_fval_cv/10,"\n")
 x <- c(1:10)
@@ -972,7 +972,7 @@ for(i in 1:10) {
 }
 
 ### Plot
-cat("Tree: ",
+cat("ANN: ",
     "Accuracy: ", full_accuracy_cv/10, "Precision: ", full_precision_cv/10, 
     "Recall: ", full_recall_cv/10,"F-Measure: ", full_fval_cv/10,"\n")
 x <- c(1:10)
