@@ -18,11 +18,15 @@ library(e1071)
 ####################################### EKSPLORASI DATA ####################################################
 #Mengubah data frame
 bank <- read.csv("Bank Marketing.csv")
-bank <- data.frame(Bank.Marketing)
+bank <- bank %>% 
+  rename(
+    age = ï..age
+  )
+bank <- data.frame(bank)
 View (bank)
 head(bank)
 #Deklarasi Atribut 
-bank$ï..age <- as.numeric(bank$ï..age)
+bank$age <- as.numeric(bank$age)
 bank$balance <- as.numeric(bank$balance)
 bank$day <- as.numeric(bank$day)
 bank$duration <- as.numeric(bank$duration)
@@ -176,11 +180,6 @@ predict_dtreerpart <- predict(ptree, test_data[,1:16], type="class")
 confusionMatrix(predict_dtreerpart, test_data$y)
 
 
-plot(perf, avg= "threshold", colorize=T, lwd= 3,
-     main= "... Precision/Recall graphs ...")
-plot(perf, lty=3, col="grey78", add=T)
-
-
 ########################################## Decision tree entrophy##########################
 dtreemodel_rpart_entro <- rpart(y~., train_data, parms = list(split = "information"))
 predict_dtreerpart_entro <- predict(dtreemodel_rpart_entro, test_data[,1:16], type="class")
@@ -201,7 +200,7 @@ predict_dtreerpart <- predict(ptree, test_data[,1:16], type="class")
 confusionMatrix(predict_dtreerpart, test_data$y)
 
 
-########################################## Naive bayes tes siginifikansi kolom############################
+########################################## Naive bayes tes siginifikansi atribut############################
 #Building a model
 
 library(e1071)
@@ -209,7 +208,7 @@ model = train(x,y,'nb',trControl=trainControl(method='cv',number=10))
 Predict <- predict(model,newdata = test_data )
 X <- varImp(model)
 plot(X)
-#naive bayes yg praktikum
+
 nbmodel <- naiveBayes(y~., data=train_data)
 nbpredict <- predict(nbmodel, test_data[,1:16], type="class")
 
@@ -227,7 +226,7 @@ confusionMatrix(predict.nb, test_data$class)
 
 head(bank)
 #Drop kolom yang tidak signifikan dan membagi kembali data tes dan training
-col_to_drop <- c("ÃƒÂ¯..age","age","month","day","marital","job")
+col_to_drop <- c("age","age","month","day","marital","job")
 bank_drop <- bank[,!(names(bank) %in% col_to_drop)]
 
 #Misah data train dan test
@@ -247,17 +246,9 @@ nbpredict <- predict(nbmodel, test_data[,1:12], type="class")
 
 confusionMatrix(nbpredict,test_data$y)
 
-library(caret)
-library(klaR)
-trainControl <- trainControl(method="cv", number=5)
-fit.nb <- train(y~., data=train_data, method="nb",
-                metric="Accuracy", trControl=trainControl)
-
-predict.nb <- predict(fit.nb, test_data[,1:12])
-
-confusionMatrix(predict.nb, test_data$y)
-X <- varImp(fit.nb)
-plot(X)
+resultdt <- table(nbpredict, test_data$y)
+cmdt <- confusionMatrix(nbpredict, test_data$y)
+evaluation(resultdt, accuracy = cmdt)#Menampilakn precision recall dan f-measure
 
 ########################################## naive bayes laplace##############################
 nbmodel <- naiveBayes(y~., data=train_data, laplace = 1)
@@ -265,17 +256,9 @@ nbpredict <- predict(nbmodel, test_data[,1:12], type="class")
 
 confusionMatrix(nbpredict,test_data$y)
 
-library(caret)
-library(klaR)
-trainControl <- trainControl(method="cv", number=5)
-fit.nb <- train(y~., data=train_data, method="nb",
-                metric="Accuracy", trControl=trainControl)
-
-predict.nb <- predict(fit.nb, test_data[,1:12])
-
-confusionMatrix(predict.nb, test_data$y)
-X <- varImp(fit.nb)
-plot(X)
+resultdt <- table(nbpredict, test_data$y)
+cmdt <- confusionMatrix(nbpredict, test_data$y)
+evaluation(resultdt, accuracy = cmdt)#Menampilakn precision recall dan f-measure
 
 ########################################## praprocessing untuk ANN dan kNN#################################
 bank<- read.csv("Bank Marketing.csv")
@@ -343,7 +326,7 @@ normalize <- function(x) {
 }
 head(bank_normal)
 bank_normal <- bank
-bank_normal$Ã¯..age <- normalize(bank_normal$Ã¯..age)
+bank_normal$age <- normalize(bank_normal$age)
 bank_normal$balance <- normalize(bank_normal$balance)
 bank_normal$duration <- normalize(bank_normal$duration)
 
@@ -393,7 +376,13 @@ plot(k.opt, type = "b", xlim = c(174, 178), ylim = c(0.886, 0.888))
 #ingat ubah data bank menjadi normal kembali untuk menjalankan ini (baris 16-27)
 library(rminer)
 full_accuracy = 0
+full_precision = 0
+full_recall = 0
+full_fval = 0
 list_accuracy <- list()
+list_precision <- list()
+list_recall <- list()
+list_fval <- list()
 
 for(i in 1:100) {
   H = holdout(bank$y, ratio = 2/3, mode="random", seed = NULL)
@@ -401,23 +390,38 @@ for(i in 1:100) {
   predict_dtreerpart <- predict(dtreemodel_rpart, bank[H$ts,1:16], type="class")
   result<- confusionMatrix(predict_dtreerpart, bank[H$ts,]$y)
   accuracy <- result$overall['Accuracy']
+  precision <- result$byClass['Precision']
+  recall <- result$byClass['Recall']
+  fval <- result$byClass['F1']
   cat("batch: ",i,
       "accuracy: ",accuracy,"\n")
   full_accuracy = full_accuracy + accuracy
+  full_precision = full_precision + precision
+  full_recall = full_recall + recall
+  full_fval = full_fval + fval
   list_accuracy[[i]] <- accuracy
+  list_precision[[i]] <- precision
+  list_recall[[i]] <- recall
+  list_fval[[i]] <- fval
 }
 
 ### Plot
 cat("Tree: ",
-    "Accuracy: ", full_accuracy/100, "\n")
+    "Accuracy: ", full_accuracy/100, "Precision: ", full_precision/100, 
+    "Recall: ", full_recall/100,"F-Measure: ", full_fval/100,"\n")
 x <- c(1:100)
 plot(x, list_accuracy, type="o")
 
 ########################################## Repeated holdout tree Entrophy ########################################
 #ingat ubah data bank menjadi normal kembali untuk menjalankan ini (baris 16-27)
-library(rminer)
 full_accuracy = 0
+full_precision = 0
+full_recall = 0
+full_fval = 0
 list_accuracy <- list()
+list_precision <- list()
+list_recall <- list()
+list_fval <- list()
 
 for(i in 1:100) {
   H = holdout(bank$y, ratio = 2/3, mode="random", seed = NULL)
@@ -425,22 +429,38 @@ for(i in 1:100) {
   predict_dtreerpart <- predict(dtreemodel_rpart, bank[H$ts,1:16], type="class")
   result<- confusionMatrix(predict_dtreerpart, bank[H$ts,]$y)
   accuracy <- result$overall['Accuracy']
+  precision <- result$byClass['Precision']
+  recall <- result$byClass['Recall']
+  fval <- result$byClass['F1']
   cat("batch: ",i,
       "accuracy: ",accuracy,"\n")
   full_accuracy = full_accuracy + accuracy
+  full_precision = full_precision + precision
+  full_recall = full_recall + recall
+  full_fval = full_fval + fval
   list_accuracy[[i]] <- accuracy
+  list_precision[[i]] <- precision
+  list_recall[[i]] <- recall
+  list_fval[[i]] <- fval
 }
 
 ### Plot
 cat("Tree: ",
-    "Accuracy: ", full_accuracy/100, "\n")
+    "Accuracy: ", full_accuracy/100, "Precision: ", full_precision/100, 
+    "Recall: ", full_recall/100,"F-Measure: ", full_fval/100,"\n")
 x <- c(1:100)
 plot(x, list_accuracy, type="o")
 ########################################## Repeated Holdout tree Gini prunned#############################
 #ingat ubah data bank menjadi normal kembali untuk menjalankan ini (baris 16-27)
 library(rminer)
 full_accuracy = 0
+full_precision = 0
+full_recall = 0
+full_fval = 0
 list_accuracy <- list()
+list_precision <- list()
+list_recall <- list()
+list_fval <- list()
 
 for(i in 1:100) {
   H = holdout(bank$y, ratio = 2/3, mode="random", seed = NULL)
@@ -449,15 +469,25 @@ for(i in 1:100) {
   predict_dtreerpart <- predict(ptree, bank[H$ts,1:16], type="class")
   result<- confusionMatrix(predict_dtreerpart, bank[H$ts,]$y)
   accuracy <- result$overall['Accuracy']
+  precision <- result$byClass['Precision']
+  recall <- result$byClass['Recall']
+  fval <- result$byClass['F1']
   cat("batch: ",i,
       "accuracy: ",accuracy,"\n")
   full_accuracy = full_accuracy + accuracy
+  full_precision = full_precision + precision
+  full_recall = full_recall + recall
+  full_fval = full_fval + fval
   list_accuracy[[i]] <- accuracy
+  list_precision[[i]] <- precision
+  list_recall[[i]] <- recall
+  list_fval[[i]] <- fval
 }
 
 ### Plot
 cat("Tree: ",
-    "Accuracy: ", full_accuracy/100, "\n")
+    "Accuracy: ", full_accuracy/100, "Precision: ", full_precision/100, 
+    "Recall: ", full_recall/100,"F-Measure: ", full_fval/100,"\n")
 x <- c(1:100)
 plot(x, list_accuracy, type="o")
 
@@ -469,6 +499,12 @@ rataan_akurasi_tree2
 ### Membuat 10 fold
 folds <- cut(seq(1,nrow(bank)), breaks=10, label=FALSE)
 full_accuracy_cv = 0
+full_precision_cv = 0
+full_recall_cv = 0
+full_fval_cv = 0
+list_precision_cv <- list()
+list_recall_cv <- list()
+list_fval_cv <- list()
 list_accuracy_cv <- list()
 
 for(i in 1:10) {
@@ -479,16 +515,27 @@ for(i in 1:10) {
   treepredict <- predict(tree, testData[,1:16], type="class")
   result <- confusionMatrix(treepredict, testData$y)
   accuracy <- result$overall['Accuracy']
+  precision <- result$byClass['Precision']
+  recall <- result$byClass['Recall']
+  fval <- result$byClass['F1']
   
   cat("batch: ",i,
       "accuracy: ",accuracy,"\n")
   full_accuracy_cv = full_accuracy_cv + accuracy
   list_accuracy_cv[[i]] <- accuracy
+  full_precision_cv = full_precision_cv + precision
+  full_recall_cv = full_recall_cv + recall
+  full_fval_cv = full_fval_cv + fval
+  list_accuracy_cv[[i]] <- accuracy
+  list_precision_cv[[i]] <- precision
+  list_recall_cv[[i]] <- recall
+  list_fval_cv[[i]] <- fval
 }
 
 ### Plot
 cat("Tree: ",
-    "Accuracy: ", full_accuracy_cv/10,"\n")
+    "Accuracy: ", full_accuracy_cv/10, "Precision: ", full_precision_cv/10, 
+    "Recall: ", full_recall_cv/10,"F-Measure: ", full_fval_cv/10,"\n")
 x <- c(1:10)
 plot(x, list_accuracy_cv, type="o")
 
@@ -497,6 +544,12 @@ plot(x, list_accuracy_cv, type="o")
 ### Membuat 10 fold
 folds <- cut(seq(1,nrow(bank)), breaks=10, label=FALSE)
 full_accuracy_cv = 0
+full_precision_cv = 0
+full_recall_cv = 0
+full_fval_cv = 0
+list_precision_cv <- list()
+list_recall_cv <- list()
+list_fval_cv <- list()
 list_accuracy_cv <- list()
 
 for(i in 1:10) {
@@ -507,16 +560,27 @@ for(i in 1:10) {
   treepredict <- predict(tree, testData[,1:16], type="class")
   result <- confusionMatrix(treepredict, testData$y)
   accuracy <- result$overall['Accuracy']
+  precision <- result$byClass['Precision']
+  recall <- result$byClass['Recall']
+  fval <- result$byClass['F1']
   
   cat("batch: ",i,
       "accuracy: ",accuracy,"\n")
   full_accuracy_cv = full_accuracy_cv + accuracy
   list_accuracy_cv[[i]] <- accuracy
+  full_precision_cv = full_precision_cv + precision
+  full_recall_cv = full_recall_cv + recall
+  full_fval_cv = full_fval_cv + fval
+  list_accuracy_cv[[i]] <- accuracy
+  list_precision_cv[[i]] <- precision
+  list_recall_cv[[i]] <- recall
+  list_fval_cv[[i]] <- fval
 }
 
 ### Plot
 cat("Tree: ",
-    "Accuracy: ", full_accuracy_cv/10,"\n")
+    "Accuracy: ", full_accuracy_cv/10, "Precision: ", full_precision_cv/10, 
+    "Recall: ", full_recall_cv/10,"F-Measure: ", full_fval_cv/10,"\n")
 x <- c(1:10)
 plot(x, list_accuracy_cv, type="o")
 ########################################## Cross Validation Tree Gini prunned ####################################
@@ -524,6 +588,12 @@ plot(x, list_accuracy_cv, type="o")
 ### Membuat 10 fold
 folds <- cut(seq(1,nrow(bank)), breaks=10, label=FALSE)
 full_accuracy_cv = 0
+full_precision_cv = 0
+full_recall_cv = 0
+full_fval_cv = 0
+list_precision_cv <- list()
+list_recall_cv <- list()
+list_fval_cv <- list()
 list_accuracy_cv <- list()
 
 for(i in 1:10) {
@@ -535,16 +605,27 @@ for(i in 1:10) {
   treepredict <- predict(ptree, testData[,1:16], type="class")
   result <- confusionMatrix(treepredict, testData$y)
   accuracy <- result$overall['Accuracy']
+  precision <- result$byClass['Precision']
+  recall <- result$byClass['Recall']
+  fval <- result$byClass['F1']
   
   cat("batch: ",i,
       "accuracy: ",accuracy,"\n")
   full_accuracy_cv = full_accuracy_cv + accuracy
   list_accuracy_cv[[i]] <- accuracy
+  full_precision_cv = full_precision_cv + precision
+  full_recall_cv = full_recall_cv + recall
+  full_fval_cv = full_fval_cv + fval
+  list_accuracy_cv[[i]] <- accuracy
+  list_precision_cv[[i]] <- precision
+  list_recall_cv[[i]] <- recall
+  list_fval_cv[[i]] <- fval
 }
 
 ### Plot
 cat("Tree: ",
-    "Accuracy: ", full_accuracy_cv/10,"\n")
+    "Accuracy: ", full_accuracy_cv/10, "Precision: ", full_precision_cv/10, 
+    "Recall: ", full_recall_cv/10,"F-Measure: ", full_fval_cv/10,"\n")
 x <- c(1:10)
 plot(x, list_accuracy_cv, type="o")
 
@@ -554,7 +635,13 @@ plot(x, list_accuracy_cv, type="o")
 # Repeated Holdout naive bayes
 library(rminer)
 full_accuracy = 0
+full_precision = 0
+full_recall = 0
+full_fval = 0
 list_accuracy <- list()
+list_precision <- list()
+list_recall <- list()
+list_fval <- list()
 
 for(i in 1:100) {
   H = holdout(bank$y, ratio = 2/3, mode="random", seed = NULL)
@@ -562,15 +649,25 @@ for(i in 1:100) {
   nbpredict <- predict(nbmodel, bank_drop[H$ts,1:12], type="class")
   result<- confusionMatrix(nbpredict, bank_drop[H$ts,]$y)
   accuracy <- result$overall['Accuracy']
+  precision <- result$byClass['Precision']
+  recall <- result$byClass['Recall']
+  fval <- result$byClass['F1']
   cat("batch: ",i,
       "accuracy: ",accuracy,"\n")
   full_accuracy = full_accuracy + accuracy
+  full_precision = full_precision + precision
+  full_recall = full_recall + recall
+  full_fval = full_fval + fval
   list_accuracy[[i]] <- accuracy
+  list_precision[[i]] <- precision
+  list_recall[[i]] <- recall
+  list_fval[[i]] <- fval
 }
 
 ### Plot
 cat("Tree: ",
-    "Accuracy: ", full_accuracy/100, "\n")
+    "Accuracy: ", full_accuracy/100, "Precision: ", full_precision/100, 
+    "Recall: ", full_recall/100,"F-Measure: ", full_fval/100,"\n")
 x <- c(1:100)
 plot(x, list_accuracy, type="o")
 
@@ -579,7 +676,13 @@ plot(x, list_accuracy, type="o")
 # Repeated Holdout naive bayes
 library(rminer)
 full_accuracy = 0
+full_precision = 0
+full_recall = 0
+full_fval = 0
 list_accuracy <- list()
+list_precision <- list()
+list_recall <- list()
+list_fval <- list()
 
 for(i in 1:100) {
   H = holdout(bank$y, ratio = 2/3, mode="random", seed = NULL)
@@ -587,15 +690,25 @@ for(i in 1:100) {
   nbpredict <- predict(nbmodel, bank_drop[H$ts,1:12], type="class")
   result<- confusionMatrix(nbpredict, bank_drop[H$ts,]$y)
   accuracy <- result$overall['Accuracy']
+  precision <- result$byClass['Precision']
+  recall <- result$byClass['Recall']
+  fval <- result$byClass['F1']
   cat("batch: ",i,
       "accuracy: ",accuracy,"\n")
   full_accuracy = full_accuracy + accuracy
+  full_precision = full_precision + precision
+  full_recall = full_recall + recall
+  full_fval = full_fval + fval
   list_accuracy[[i]] <- accuracy
+  list_precision[[i]] <- precision
+  list_recall[[i]] <- recall
+  list_fval[[i]] <- fval
 }
 
 ### Plot
 cat("Tree: ",
-    "Accuracy: ", full_accuracy/100, "\n")
+    "Accuracy: ", full_accuracy/100, "Precision: ", full_precision/100, 
+    "Recall: ", full_recall/100,"F-Measure: ", full_fval/100,"\n")
 x <- c(1:100)
 plot(x, list_accuracy, type="o")
 
@@ -604,6 +717,12 @@ plot(x, list_accuracy, type="o")
 ### Membuat 10 fold
 folds <- cut(seq(1,nrow(bank_drop)), breaks=10, label=FALSE)
 full_accuracy_cv = 0
+full_precision_cv = 0
+full_recall_cv = 0
+full_fval_cv = 0
+list_precision_cv <- list()
+list_recall_cv <- list()
+list_fval_cv <- list()
 list_accuracy_cv <- list()
 
 for(i in 1:10) {
@@ -614,16 +733,27 @@ for(i in 1:10) {
   nbpredict <- predict(nbmodel, testData, type="class")
   result <- confusionMatrix(nbpredict, testData$y)
   accuracy <- result$overall['Accuracy']
+  precision <- result$byClass['Precision']
+  recall <- result$byClass['Recall']
+  fval <- result$byClass['F1']
   
   cat("batch: ",i,
       "accuracy: ",accuracy,"\n")
   full_accuracy_cv = full_accuracy_cv + accuracy
   list_accuracy_cv[[i]] <- accuracy
+  full_precision_cv = full_precision_cv + precision
+  full_recall_cv = full_recall_cv + recall
+  full_fval_cv = full_fval_cv + fval
+  list_accuracy_cv[[i]] <- accuracy
+  list_precision_cv[[i]] <- precision
+  list_recall_cv[[i]] <- recall
+  list_fval_cv[[i]] <- fval
 }
 
 ### Plot
 cat("Tree: ",
-    "Accuracy: ", full_accuracy_cv/10,"\n")
+    "Accuracy: ", full_accuracy_cv/10, "Precision: ", full_precision_cv/10, 
+    "Recall: ", full_recall_cv/10,"F-Measure: ", full_fval_cv/10,"\n")
 x <- c(1:10)
 plot(x, list_accuracy_cv, type="o")
 
@@ -632,6 +762,12 @@ plot(x, list_accuracy_cv, type="o")
 ### Membuat 10 fold
 folds <- cut(seq(1,nrow(bank_drop)), breaks=10, label=FALSE)
 full_accuracy_cv = 0
+full_precision_cv = 0
+full_recall_cv = 0
+full_fval_cv = 0
+list_precision_cv <- list()
+list_recall_cv <- list()
+list_fval_cv <- list()
 list_accuracy_cv <- list()
 
 for(i in 1:10) {
@@ -642,16 +778,27 @@ for(i in 1:10) {
   nbpredict <- predict(nbmodel, testData, type="class")
   result <- confusionMatrix(nbpredict, testData$y)
   accuracy <- result$overall['Accuracy']
+  precision <- result$byClass['Precision']
+  recall <- result$byClass['Recall']
+  fval <- result$byClass['F1']
   
   cat("batch: ",i,
       "accuracy: ",accuracy,"\n")
   full_accuracy_cv = full_accuracy_cv + accuracy
   list_accuracy_cv[[i]] <- accuracy
+  full_precision_cv = full_precision_cv + precision
+  full_recall_cv = full_recall_cv + recall
+  full_fval_cv = full_fval_cv + fval
+  list_accuracy_cv[[i]] <- accuracy
+  list_precision_cv[[i]] <- precision
+  list_recall_cv[[i]] <- recall
+  list_fval_cv[[i]] <- fval
 }
 
 ### Plot
 cat("Tree: ",
-    "Accuracy: ", full_accuracy_cv/10,"\n")
+    "Accuracy: ", full_accuracy_cv/10, "Precision: ", full_precision_cv/10, 
+    "Recall: ", full_recall_cv/10,"F-Measure: ", full_fval_cv/10,"\n")
 x <- c(1:10)
 plot(x, list_accuracy_cv, type="o")
 
@@ -660,7 +807,13 @@ plot(x, list_accuracy_cv, type="o")
 # Repeated Holdout KNN
 library(rminer)
 full_accuracy = 0
+full_precision = 0
+full_recall = 0
+full_fval = 0
 list_accuracy <- list()
+list_precision <- list()
+list_recall <- list()
+list_fval <- list()
 
 for(i in 1:100) {
   H = holdout(bank$y, ratio = 2/3, mode="random", seed = NULL)
@@ -668,15 +821,25 @@ for(i in 1:100) {
   knnpredict <- predict(knnmodel, bank[H$ts,1:16], type="class")
   result<- confusionMatrix(knnpredict, bank[H$ts,]$y)
   accuracy <- result$overall['Accuracy']
+  precision <- result$byClass['Precision']
+  recall <- result$byClass['Recall']
+  fval <- result$byClass['F1']
   cat("batch: ",i,
       "accuracy: ",accuracy,"\n")
   full_accuracy = full_accuracy + accuracy
+  full_precision = full_precision + precision
+  full_recall = full_recall + recall
+  full_fval = full_fval + fval
   list_accuracy[[i]] <- accuracy
+  list_precision[[i]] <- precision
+  list_recall[[i]] <- recall
+  list_fval[[i]] <- fval
 }
 
 k =### Plot
 cat("Tree: ",
-    "Accuracy: ", full_accuracy/100, "\n")
+      "Accuracy: ", full_accuracy/100, "Precision: ", full_precision/100, 
+      "Recall: ", full_recall/100,"F-Measure: ", full_fval/100,"\n")
 x <- c(1:100)
 plot(x, list_accuracy, type="o")
        
@@ -685,6 +848,12 @@ plot(x, list_accuracy, type="o")
 ### Membuat 10 fold
 folds <- cut(seq(1,nrow(bank)), breaks=10, label=FALSE)
 full_accuracy_cv = 0
+full_precision_cv = 0
+full_recall_cv = 0
+full_fval_cv = 0
+list_precision_cv <- list()
+list_recall_cv <- list()
+list_fval_cv <- list()
 list_accuracy_cv <- list()
 
 for(i in 1:10) {
@@ -695,16 +864,27 @@ for(i in 1:10) {
   knnPredict212 <- predict(knnModel212, testData[,1:16], type="class")
   result <- confusionMatrix(knnPredict212, testData$y)
   accuracy <- result$overall['Accuracy']
+  precision <- result$byClass['Precision']
+  recall <- result$byClass['Recall']
+  fval <- result$byClass['F1']
   
   cat("batch: ",i,
       "accuracy: ",accuracy,"\n")
   full_accuracy_cv = full_accuracy_cv + accuracy
   list_accuracy_cv[[i]] <- accuracy
+  full_precision_cv = full_precision_cv + precision
+  full_recall_cv = full_recall_cv + recall
+  full_fval_cv = full_fval_cv + fval
+  list_accuracy_cv[[i]] <- accuracy
+  list_precision_cv[[i]] <- precision
+  list_recall_cv[[i]] <- recall
+  list_fval_cv[[i]] <- fval
 }
 
 ### Plot
 cat("Tree: ",
-    "Accuracy: ", full_accuracy_cv/10,"\n")
+    "Accuracy: ", full_accuracy_cv/10, "Precision: ", full_precision_cv/10, 
+    "Recall: ", full_recall_cv/10,"F-Measure: ", full_fval_cv/10,"\n")
 x <- c(1:10)
 plot(x, list_accuracy_cv, type="o")
 ########################################## Repeated holdout buat ANN ########################################
@@ -712,8 +892,13 @@ plot(x, list_accuracy_cv, type="o")
 # Repeated Holdout ANN
 library(rminer)
 full_accuracy = 0
+full_precision = 0
+full_recall = 0
+full_fval = 0
 list_accuracy <- list()
-
+list_precision <- list()
+list_recall <- list()
+list_fval <- list()
 for(i in 1:100) {
   H = holdout(bank$y, ratio = 2/3, mode="random", seed = NULL)
   nn1 <- nnet(y~., data = bank[H$tr,], size = 10, maxit = 300,
@@ -722,16 +907,26 @@ for(i in 1:100) {
   pred1 <- factor(predict_nn1)
   result<- confusionMatrix(pred1, bank[H$ts,]$y)
   accuracy <- result$overall['Accuracy']
+  precision <- result$byClass['Precision']
+  recall <- result$byClass['Recall']
+  fval <- result$byClass['F1']
   cat("batch: ",i,
       "accuracy: ",accuracy,"\n")
   full_accuracy = full_accuracy + accuracy
+  full_precision = full_precision + precision
+  full_recall = full_recall + recall
+  full_fval = full_fval + fval
   list_accuracy[[i]] <- accuracy
+  list_precision[[i]] <- precision
+  list_recall[[i]] <- recall
+  list_fval[[i]] <- fval
 }
 
 
 ### Plot
 cat("Tree: ",
-    "Accuracy: ", full_accuracy/100, "\n")
+    "Accuracy: ", full_accuracy/100, "Precision: ", full_precision/100, 
+    "Recall: ", full_recall/100,"F-Measure: ", full_fval/100,"\n")
 x <- c(1:100)
 plot(x, list_accuracy, type="o")
 
@@ -741,6 +936,12 @@ plot(x, list_accuracy, type="o")
 ### Membuat 10 fold
 folds <- cut(seq(1,nrow(bank)), breaks=10, label=FALSE)
 full_accuracy_cv = 0
+full_precision_cv = 0
+full_recall_cv = 0
+full_fval_cv = 0
+list_precision_cv <- list()
+list_recall_cv <- list()
+list_fval_cv <- list()
 list_accuracy_cv <- list()
 
 for(i in 1:10) {
@@ -753,15 +954,26 @@ for(i in 1:10) {
   pred1 <- factor(predict_nn1)
   result <- confusionMatrix(pred1, testData$y)
   accuracy <- result$overall['Accuracy']
+  precision <- result$byClass['Precision']
+  recall <- result$byClass['Recall']
+  fval <- result$byClass['F1']
   
   cat("batch: ",i,
       "accuracy: ",accuracy,"\n")
   full_accuracy_cv = full_accuracy_cv + accuracy
   list_accuracy_cv[[i]] <- accuracy
+  full_precision_cv = full_precision_cv + precision
+  full_recall_cv = full_recall_cv + recall
+  full_fval_cv = full_fval_cv + fval
+  list_accuracy_cv[[i]] <- accuracy
+  list_precision_cv[[i]] <- precision
+  list_recall_cv[[i]] <- recall
+  list_fval_cv[[i]] <- fval
 }
 
 ### Plot
 cat("Tree: ",
-    "Accuracy: ", full_accuracy_cv/10,"\n")
+    "Accuracy: ", full_accuracy_cv/10, "Precision: ", full_precision_cv/10, 
+    "Recall: ", full_recall_cv/10,"F-Measure: ", full_fval_cv/10,"\n")
 x <- c(1:10)
 plot(x, list_accuracy_cv, type="o")
