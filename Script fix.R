@@ -81,7 +81,21 @@ ggcorrplot(corr, hc.order = TRUE,
            title="Correlogram of Bank Marketing", 
            ggtheme=theme_bw)
 
-plot(x=bank$contact, y=bank$y, xlab = "contact", ylab="Income >50K Probability", ylim=c(0,1))
+# heatmap
+corr <- round(cor(bank[,c(1,6,10,12,13,14,15)]), 2)
+ggcorrplot(corr, hc.order = TRUE, 
+           type = "lower", 
+           lab = TRUE, 
+           lab_size = 3, 
+           method="circle", 
+           colors = c("tomato2", "white", "springgreen3"), 
+           title="Correlogram of Bank Marketing", 
+           ggtheme=theme_bw)
+
+# Plot probabilitas berlangganan
+plot(x=bank$contact, y=bank$y, xlab = "contact", ylab="Probabilitas berlangganan", ylim=c(0,1))
+plot(x=bank$marital, y=bank$y, xlab = "marital", ylab="Probabilitas berlangganan", ylim=c(0,1))
+plot(x=bank$job, y=bank$y, xlab = "job", ylab="Probabilitas berlangganan", ylim=c(0,1))
 
 #Membagi data train dan test
 set.seed(1234)
