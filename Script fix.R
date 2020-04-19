@@ -14,9 +14,41 @@ library(reshape2)
 library(rpart.plot)
 library(nnet)
 library(e1071)
-bank <- read.csv("Bank Marketing.csv")
 
+####################################### EKSPLORASI DATA ####################################################
+#Mengubah data frame
+bank <- read.csv("Bank Marketing.csv")
+bank <- data.frame(Bank.Marketing)
+View (bank)
+
+#Deklarasi Atribut 
+bank$ï..age <- as.numeric(bank$ï..age)
+bank$balance <- as.numeric(bank$balance)
+bank$day <- as.numeric(bank$day)
+bank$duration <- as.numeric(bank$duration)
+bank$campaign <- as.numeric(bank$campaign)
+bank$pdays <- as.numeric(bank$pdays)
+bank$poutcome <- as.numeric(bank$poutcome)
+
+bank$job <- as.factor(bank$job)
+bank$month <- as.ordered(bank$month)
+bank$education <- as.factor(bank$education)
+bank$loan <- as.factor(bank$loan)
+bank$housing <- as.factor(bank$housing)
+bank$loan <- as.factor(bank$loan)
+bank$y <- as.factor(bank$y)
+
+#Melihat struktur data 
+str(bank)
+
+#Mencari head and Tail
 head(bank)
+tail(bank)
+
+#Mengetahui Summary data
+summary(bank)
+
+#Mencari duplikasi data
 library(dplyr)
 which(duplicated(bank))
 
@@ -30,6 +62,10 @@ summary(bank)
 str(bank)
 
 missmap(bank)
+
+#Perbandingan jumlah kelas secara keseluruhan data 
+##Visualisasi Jumlah Class
+plot(x=bank$y, ylim=c(0,50000), xlab="Class Y", ylab="count")
 
 #Visualisasi data numerik 
 #heatmap 
@@ -191,7 +227,7 @@ confusionMatrix(predict.nb, test_data$class)
 
 head(bank)
 #Drop kolom yang tidak signifikan dan membagi kembali data tes dan training
-col_to_drop <- c("ï..age","age","month","day","marital","job")
+col_to_drop <- c("Ã¯..age","age","month","day","marital","job")
 bank_drop <- bank[,!(names(bank) %in% col_to_drop)]
 
 #Misah data train dan test
@@ -307,7 +343,7 @@ normalize <- function(x) {
 }
 head(bank_normal)
 bank_normal <- bank
-bank_normal$�..age <- normalize(bank_normal$�..age)
+bank_normal$ï..age <- normalize(bank_normal$ï..age)
 bank_normal$balance <- normalize(bank_normal$balance)
 bank_normal$duration <- normalize(bank_normal$duration)
 
