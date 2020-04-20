@@ -989,7 +989,7 @@ pred_tree_gini <- prediction(as.numeric(predict_dtreerpart_gini), as.numeric(tes
 pred_tree_entro <- prediction(as.numeric(predict_dtreerpart_entro), as.numeric(test_data$y))
 pred_NB <- prediction(as.numeric(nbpredict), as.numeric(test_data$y))
 pred_NB_laplace <- prediction(as.numeric(nbpredictlaplace), as.numeric(test_data$y))
-pred_ANN <- prediction(as.numeric(predict_nn1), test_data$y)
+pred_ANN <- prediction(as.numeric(pred1), test_data$y)
 pred_kNN <- prediction(as.numeric(knnPredict213), test_data$y)
 
 
@@ -1005,6 +1005,15 @@ g <- ggplot() +
   geom_line(data = pte, aes(x = FP, y = TP, color = 'Decision Tree Entrophy')) + 
   geom_line(data = pnb, aes(x = FP, y = TP, color = 'Bayes')) +
   geom_line(data = pnbl, aes(x = FP, y = TP, color = 'Bayes Laplace')) +
+  geom_line(data = pann, aes(x = FP, y = TP, color = 'ANN')) +
+  geom_line(data = pknn, aes(x = FP, y = TP, color = 'kNN')) +
+  geom_segment(aes(x = 0, xend = 1, y = 0, yend = 1)) +
+  ggtitle('ROC Curve') + 
+  labs(x = 'False Positive Rate', y = 'True Positive Rate') 
+
+print(g)
+
+g <- ggplot() + 
   geom_line(data = pann, aes(x = FP, y = TP, color = 'ANN')) +
   geom_line(data = pknn, aes(x = FP, y = TP, color = 'kNN')) +
   geom_segment(aes(x = 0, xend = 1, y = 0, yend = 1)) +
