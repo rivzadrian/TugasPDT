@@ -252,7 +252,7 @@ evaluation(resultdt, accuracy = cmdt)#Menampilakn precision recall dan f-measure
 
 ########################################## naive bayes laplace##############################
 nbmodel <- naiveBayes(y~., data=train_data, laplace = 1)
-nbpredict <- predict(nbmodel, test_data[,1:12], type="class")
+nbpredictlaplace <- predict(nbmodel, test_data[,1:12], type="class")
 
 confusionMatrix(nbpredict,test_data$y)
 
@@ -977,3 +977,39 @@ cat("ANN: ",
     "Recall: ", full_recall_cv/10,"F-Measure: ", full_fval_cv/10,"\n")
 x <- c(1:10)
 plot(x, list_accuracy_cv, type="o")
+
+##########################################ROC Curve#################
+predict_dtreerpart_gini
+library(ROCR)
+library("rpart")
+library(RWeka)
+
+
+pred_tree_gini <- prediction(as.numeric(predict_dtreerpart_gini), as.numeric(test_data$y))
+pred_tree_entro <- prediction(as.numeric(predict_dtreerpart_entro), as.numeric(test_data$y))
+pred_NB <- prediction(as.numeric(nbpredict), as.numeric(test_data$y))
+pred_NB_laplace <- prediction(as.numeric(nbpredictlaplace), as.numeric(test_data$y))
+pred_ANN <- prediction(as.numeric(predict_nn1), test_data$y)
+pred_kNN <- prediction(as.numeric(knnPredict213), test_data$y)
+
+
+ptgp <- data.frame(FP = pred_tree_gini_prun@fp[[1]], TP = pred_tree_gini_prun@tp[[1]])
+pte <- data.frame(FP = pred_tree_entro@fp[[1]], TP = pred_tree_entro@tp[[1]])
+pnb <- data.frame(FP = pred_NB@fp[[1]], TP = pred_NB@tp[[1]])
+pnbl <- data.frame(FP = pred_NB_laplace@fp[[1]], TP = pred_NB_laplace@tp[[1]])
+pann <- data.frame(FP = pred_ANN@fp[[1]], TP = pred_ANN@tp[[1]])
+pknn <- data.frame(FP = pred_kNN@fp[[1]], TP = pred_kNN@tp[[1]])
+
+g <- ggplot() + 
+  geom_line(data = ptgp, aes(x = FP, y = TP, color = 'Decision Tree Gini')) + 
+  geom_line(data = pte, aes(x = FP, y = TP, color = 'Decision Tree Entrophy')) + 
+  geom_line(data = pnb, aes(x = FP, y = TP, color = 'Bayes')) +
+  geom_line(data = pnbl, aes(x = FP, y = TP, color = 'Bayes Laplace')) +
+  geom_line(data = pann, aes(x = FP, y = TP, color = 'ANN')) +
+  geom_line(data = pknn, aes(x = FP, y = TP, color = 'kNN')) +
+  geom_segment(aes(x = 0, xend = 1, y = 0, yend = 1)) +
+  ggtitle('ROC Curve') + 
+  labs(x = 'False Positive Rate', y = 'True Positive Rate') 
+
+print(g)
+
